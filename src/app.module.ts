@@ -4,8 +4,6 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { MovieModule } from './movie/movie.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -20,6 +18,8 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entity/user.entity';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/guard/auth.guard';
 
 @Module({
   imports: [
@@ -55,8 +55,12 @@ import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware
     AuthModule,
     UserModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
