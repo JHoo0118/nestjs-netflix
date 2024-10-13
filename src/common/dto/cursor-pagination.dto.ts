@@ -1,6 +1,12 @@
 // import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CursorPaginationDto {
   @IsString()
@@ -33,4 +39,9 @@ export class CursorPaginationDto {
   //     example: 5,
   //   })
   take: number = 5;
+
+  @IsBoolean()
+  @IsOptional()
+  // 이전 페이지 여부를 나타내는 플래그
+  isPreviousPage?: boolean = false;
 }

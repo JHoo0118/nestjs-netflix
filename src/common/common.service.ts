@@ -24,7 +24,7 @@ export class CommonService {
     qb: SelectQueryBuilder<T>,
     dto: CursorPaginationDto,
   ) {
-    let { cursor, take, order } = dto;
+    let { cursor, take, order, isPreviousPage } = dto;
 
     if (cursor) {
       const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
@@ -49,19 +49,30 @@ export class CommonService {
       /// (movie.column1, movie.column2, movie.column3) > (:value1, :value2, :value3)
 
       const columns = Object.keys(values);
-      const comparisonOperator = order.some((o) => o.endsWith('DESC'))
-        ? '<'
-        : '>';
-      const whereConditions = columns.map((c) => `${qb.alias}.${c}`).join(',');
-      const whereParams = columns.map((c) => `:${c}`).join(',');
 
-      qb.where(
-        `(${whereConditions}) ${comparisonOperator} (${whereParams})`,
-        values,
-      );
+      let whereClause = '';
+      const whereParams = {};
+
+      columns.forEach((column, index) => {
+        const comparisonOperator = order[index].endsWith('DESC') ? '<' : '>';
+        let condition = `(${columns
+          .slice(0, index + 1)
+          .map((col, i) =>
+            i === index
+              ? `${qb.alias}.${col} ${comparisonOperator} :${col}`
+              : `${qb.alias}.${col} = :${col}`,
+          )
+          .join(' AND ')})`;
+
+        whereClause += index === 0 ? condition : ` OR ${condition}`;
+
+        // whereParams에 현재 컬럼의 값을 추가
+        whereParams[column] = values[column];
+      });
+      // 최종적으로 qb.where에 whereClause와 whereParams를 전달
+      qb.where(whereClause, whereParams);
     }
 
-    // ["likeCount_DESC", "id_DESC"]
     for (let i = 0; i < order.length; i++) {
       const [column, direction] = order[i].split('_');
 
@@ -82,9 +93,15 @@ export class CommonService {
 
     const results = await qb.getMany();
 
-    const nextCursor = this.generateNextCursor(results, order);
+    let nextCursor = this.generateNextCursor(results, order);
+    let previousCursor = this.generatePreviousCursor(results, order);
 
-    return { qb, nextCursor };
+    // dto의 isPreviousPage에 따라 커서 이름을 자동으로 바꿈
+    if (isPreviousPage) {
+      [nextCursor, previousCursor] = [previousCursor, nextCursor];
+    }
+
+    return { qb, nextCursor, previousCursor };
   }
 
   generateNextCursor<T>(results: T[], order: string[]): string | null {
@@ -114,5 +131,31 @@ export class CommonService {
     );
 
     return nextCursor;
+  }
+
+  generatePreviousCursor<T>(results: T[], order: string[]): string | null {
+    if (results.length === 0) return null;
+
+    const firstItem = results[0];
+
+    const values = {};
+
+    const reversedOrder = order.map((columnOrder) => {
+      const [column, direction] = columnOrder.split('_');
+      const reversedDirection = direction === 'ASC' ? 'DESC' : 'ASC';
+      return `${column}_${reversedDirection}`;
+    });
+
+    reversedOrder.forEach((columnOrder) => {
+      const [column] = columnOrder.split('_');
+      values[column] = firstItem[column];
+    });
+
+    const cursorObj = { values, order: reversedOrder };
+    const previousCursor = Buffer.from(JSON.stringify(cursorObj)).toString(
+      'base64',
+    );
+
+    return previousCursor;
   }
 }
