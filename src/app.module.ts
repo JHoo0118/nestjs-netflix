@@ -24,6 +24,8 @@ import { RBACGuard } from './auth/guard/rbac.guard';
 import { ResponseTimeInterceptor } from './common/interceptor/response-time.interceptor';
 import { ForbiddenExceptionFilter } from './common/filter/forbidden.filter';
 import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -52,6 +54,10 @@ import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter'
         synchronize: true,
       }),
       inject: [ConfigService],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public'),
+      serveRoot: '/public/',
     }),
     MovieModule,
     DirectorModule,
