@@ -30,4 +30,11 @@ export class CreateMovieDto {
   )
   @Type(() => Number)
   genreIds: number[];
+
+  @IsString()
+  // @ApiProperty({
+  //     description: '영화 파일 이름',
+  //     example: 'aaa-bbb-ccc-ddd.jpg'
+  // })
+  movieFileName: string;
 }
