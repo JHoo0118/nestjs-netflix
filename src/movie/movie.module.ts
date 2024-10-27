@@ -7,6 +7,8 @@ import { MovieDetail } from './entity/movie-detail.entity';
 import { Director } from 'src/director/entity/director.entity';
 import { Genre } from 'src/genre/entity/genre.entity';
 import { CommonModule } from 'src/common/common.module';
+import { MovieUserLike } from './entity/movie-user-like.entity';
+import { User } from 'src/user/entity/user.entity';
 // import { MulterModule } from '@nestjs/platform-express';
 // import { diskStorage } from 'multer';
 // import { join } from 'path';
@@ -14,7 +16,14 @@ import { CommonModule } from 'src/common/common.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Movie, MovieDetail, Director, Genre]),
+    TypeOrmModule.forFeature([
+      Movie,
+      MovieDetail,
+      MovieUserLike,
+      Director,
+      Genre,
+      User,
+    ]),
     CommonModule,
     // MulterModule.register({
     //   storage: diskStorage({
