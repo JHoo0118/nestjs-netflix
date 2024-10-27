@@ -1,6 +1,6 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { MovieService } from './movie.service';
-import { MovieController, MovieControllerV2 } from './movie.controller';
+import { MovieController } from './movie.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Movie } from './entity/movie.entity';
 import { MovieDetail } from './entity/movie-detail.entity';
@@ -47,7 +47,8 @@ interface MovieModuleOptions {
     //   }),
     // }),
   ],
-  controllers: [MovieControllerV2, MovieController],
+  // controllers: [MovieControllerV2, MovieController],
+  controllers: [MovieController],
   providers: [MovieService],
 })
 export class MovieModule {

@@ -29,24 +29,33 @@ import { QueryRunner as QR } from 'typeorm';
 import { CacheKey, CacheTTL } from '@nestjs/cache-manager';
 import { CacheInterceptor as CI } from '@nestjs/cache-manager';
 import { Throttle } from 'src/common/decorator/throttle.decorator';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
-@Controller({
-  path: 'movie',
-  version: '2',
-})
-@UseInterceptors(ClassSerializerInterceptor)
-export class MovieControllerV2 {
-  @Get()
-  getMovies() {
-    return [];
-  }
-}
-@Controller({
-  path: 'movie',
-  // version: ['1', '3'],
-  // version: '1',
-  version: VERSION_NEUTRAL, // 기본 버전 설정, movie.module.ts에서 controllers: [MovieControllerV2, MovieController],로 Import 순서를 바꿔줘야 함
-})
+// @Controller({
+//   path: 'movie',
+//   version: '2',
+// })
+// @UseInterceptors(ClassSerializerInterceptor)
+// export class MovieControllerV2 {
+//   @Get()
+//   getMovies() {
+//     return [];
+//   }
+// }
+// @Controller({
+//   path: 'movie',
+//   // version: ['1', '3'],
+//   // version: '1',
+//   version: VERSION_NEUTRAL, // 기본 버전 설정, movie.module.ts에서 controllers: [MovieControllerV2, MovieController],로 Import 순서를 바꿔줘야 함
+// })
+@Controller('movie')
+@ApiBearerAuth()
+@ApiTags('movie')
 @UseInterceptors(ClassSerializerInterceptor)
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
@@ -56,6 +65,17 @@ export class MovieController {
   @Throttle({
     count: 5,
     unit: 'minute',
+  })
+  @ApiOperation({
+    description: '[Movie]를 Pagination 하는 API',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공적으로 API Pagination을 실행 했을때!',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Pagination 데이터를 잘못 입력 했을때',
   })
   // @Version(['1', '3', '5'])
   getMovies(@Query() dto: GetMoviesDto, @UserId() userId?: number) {
