@@ -7,6 +7,7 @@ import { join } from 'path';
 import { v4 } from 'uuid';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Movie } from 'src/movie/entity/movie.entity';
+import { TasksService } from './tasks.service';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { Movie } from 'src/movie/entity/movie.entity';
     TypeOrmModule.forFeature([Movie]),
   ],
   controllers: [CommonController],
-  providers: [CommonService],
+  providers: [CommonService, TasksService],
   exports: [CommonService],
 })
 export class CommonModule {}

@@ -29,6 +29,7 @@ import { join } from 'path';
 import { MovieUserLike } from './movie/entity/movie-user-like.entity';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ThrottleInterceptor } from './common/interceptor/throttle.interceptor';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -66,7 +67,10 @@ import { ThrottleInterceptor } from './common/interceptor/throttle.interceptor';
       rootPath: join(process.cwd(), 'public'),
       serveRoot: '/public/',
     }),
-    MovieModule,
+    ScheduleModule.forRoot(),
+    MovieModule.forRoot({
+      uploadDestination: 'public/movie',
+    }),
     DirectorModule,
     GenreModule,
     AuthModule,
