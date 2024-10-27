@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Get,
@@ -11,6 +12,8 @@ import {
   ClassSerializerInterceptor,
   ParseIntPipe,
   BadRequestException,
+  Version,
+  VERSION_NEUTRAL,
 } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
@@ -27,7 +30,23 @@ import { CacheKey, CacheTTL } from '@nestjs/cache-manager';
 import { CacheInterceptor as CI } from '@nestjs/cache-manager';
 import { Throttle } from 'src/common/decorator/throttle.decorator';
 
-@Controller('movie')
+@Controller({
+  path: 'movie',
+  version: '2',
+})
+@UseInterceptors(ClassSerializerInterceptor)
+export class MovieControllerV2 {
+  @Get()
+  getMovies() {
+    return [];
+  }
+}
+@Controller({
+  path: 'movie',
+  // version: ['1', '3'],
+  // version: '1',
+  version: VERSION_NEUTRAL, // 기본 버전 설정, movie.module.ts에서 controllers: [MovieControllerV2, MovieController],로 Import 순서를 바꿔줘야 함
+})
 @UseInterceptors(ClassSerializerInterceptor)
 export class MovieController {
   constructor(private readonly movieService: MovieService) {}
@@ -38,6 +57,7 @@ export class MovieController {
     count: 5,
     unit: 'minute',
   })
+  // @Version(['1', '3', '5'])
   getMovies(@Query() dto: GetMoviesDto, @UserId() userId?: number) {
     return this.movieService.findAll(dto, userId);
   }
