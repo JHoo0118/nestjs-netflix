@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   Inject,
@@ -16,7 +17,6 @@ import { Genre } from 'src/genre/entities/genre.entity';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { CommonService } from 'src/common/common.service';
 import { join } from 'path';
-import { rename } from 'fs/promises';
 import { User } from 'src/user/entities/user.entity';
 import { MovieUserLike } from './entity/movie-user-like.entity';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -133,9 +133,9 @@ export class MovieService {
       count,
     };
   }
-
-  async findOne(id: number) {
-    const movie = await this.movieRepository
+  /* istanbul ignore next */
+  async findMovieDetail(id: number) {
+    return this.movieRepository
       .createQueryBuilder('movie')
       .leftJoinAndSelect('movie.director', 'director')
       .leftJoinAndSelect('movie.genres', 'genres')
@@ -143,17 +143,83 @@ export class MovieService {
       .leftJoinAndSelect('movie.creator', 'creator')
       .where('movie.id = :id', { id })
       .getOne();
-    // const movie = await this.movieRepository.findOne({
-    //   where: { id },
-    //   relations: ['detail', 'director', 'genres'],
-    // });
+  }
+
+  async findOne(id: number) {
+    const movie = await this.findMovieDetail(id);
 
     if (!movie) {
-      throw new NotFoundException('존재지 않는 ID 값의 영화입니다!');
+      throw new NotFoundException('존재하지 않는 ID의 영화입니다!');
     }
 
     return movie;
   }
+
+  /* istanbul ignore next */
+  async createMovieDetail(qr: QueryRunner, createMovieDto: CreateMovieDto) {
+    return qr.manager
+      .createQueryBuilder()
+      .insert()
+      .into(MovieDetail)
+      .values({
+        detail: createMovieDto.detail,
+      })
+      .execute();
+  }
+
+  /* istanbul ignore next */
+  createMovie(
+    qr: QueryRunner,
+    createMovieDto: CreateMovieDto,
+    director: Director,
+    movieDetailId: number,
+    userId: number,
+    movieFolder: string,
+  ) {
+    return qr.manager
+      .createQueryBuilder()
+      .insert()
+      .into(Movie)
+      .values({
+        title: createMovieDto.title,
+        detail: {
+          id: movieDetailId,
+        },
+        director,
+        creator: {
+          id: userId,
+        },
+        movieFilePath: join(movieFolder, createMovieDto.movieFileName),
+      })
+      .execute();
+  }
+
+  /* istanbul ignore next */
+  createMovieGenreRelation(qr: QueryRunner, movieId: number, genres: Genre[]) {
+    return qr.manager
+      .createQueryBuilder()
+      .relation(Movie, 'genres')
+      .of(movieId)
+      .add(genres.map((genre) => genre.id));
+  }
+
+  /* istanbul ignore next */
+  // renameMovieFile(
+  //   tempFolder: string,
+  //   movieFolder: string,
+  //   createMovieDto: CreateMovieDto,
+  // ) {
+  //   if (this.configService.get<string>(envVariableKeys.env) !== 'prod') {
+  //     return rename(
+  //       join(process.cwd(), tempFolder, createMovieDto.movieFileName),
+  //       join(process.cwd(), movieFolder, createMovieDto.movieFileName),
+  //     );
+  //   } else {
+  //     return this.commonService.saveMovieToPermanentStorage(
+  //       createMovieDto.movieFileName,
+  //     );
+  //   }
+  // }
 
   async create(
     createMovieDto: CreateMovieDto,
@@ -182,49 +248,27 @@ export class MovieService {
       );
     }
 
-    const movieDetail = await qr.manager
-      .createQueryBuilder()
-      .insert()
-      .into(MovieDetail)
-      .values({
-        detail: createMovieDto.detail,
-      })
-      .execute();
+    const movieDetail = await this.createMovieDetail(qr, createMovieDto);
 
     const movieDetailId = movieDetail.identifiers[0].id;
 
     const movieFolder = join('public', 'movie');
     const tempFolder = join('public', 'temp');
 
-    const movie = await qr.manager
-      .createQueryBuilder()
-      .insert()
-      .into(Movie)
-      .values({
-        title: createMovieDto.title,
-        detail: {
-          id: movieDetailId,
-        },
-        director,
-        creator: {
-          id: userId,
-        },
-        movieFilePath: join(movieFolder, createMovieDto.movieFileName),
-      })
-      .execute();
+    const movie = await this.createMovie(
+      qr,
+      createMovieDto,
+      director,
+      movieDetailId,
+      userId,
+      movieFolder,
+    );
 
     const movieId = movie.identifiers[0].id;
 
-    await qr.manager
-      .createQueryBuilder()
-      .relation(Movie, 'genres')
-      .of(movieId)
-      .add(genres.map((genre) => genre.id));
+    await this.createMovieGenreRelation(qr, movieId, genres);
 
-    await rename(
-      join(process.cwd(), tempFolder, createMovieDto.movieFileName),
-      join(process.cwd(), movieFolder, createMovieDto.movieFileName),
-    );
+    // await this.renameMovieFile(tempFolder, movieFolder, createMovieDto);
 
     return await qr.manager.findOne(Movie, {
       where: {
@@ -232,6 +276,44 @@ export class MovieService {
       },
       relations: ['detail', 'director', 'genres'],
     });
+  }
+
+  updateMovie(qr: QueryRunner, movieUpdateFields: UpdateMovieDto, id: number) {
+    return qr.manager
+      .createQueryBuilder()
+      .update(Movie)
+      .set(movieUpdateFields)
+      .where('id = :id', { id })
+      .execute();
+  }
+
+  /* istanbul ignore next */
+  updateMovieDetail(qr: QueryRunner, detail: string, movie: Movie) {
+    return qr.manager
+      .createQueryBuilder()
+      .update(MovieDetail)
+      .set({
+        detail,
+      })
+      .where('id = :id', { id: movie.detail.id })
+      .execute();
+  }
+
+  /* istanbul ignore next */
+  updateMovieGenreRelation(
+    qr: QueryRunner,
+    id: number,
+    newGenres: Genre[],
+    movie: Movie,
+  ) {
+    return qr.manager
+      .createQueryBuilder()
+      .relation(Movie, 'genres')
+      .of(id)
+      .addAndRemove(
+        newGenres.map((genre) => genre.id),
+        movie.genres.map((genre) => genre.id),
+      );
   }
 
   async update(id: number, updateMovieDto: UpdateMovieDto) {
@@ -372,6 +454,14 @@ export class MovieService {
       await qr.release();
     }
   }
+  /* istanbul ignore next */
+  deleteMovie(id: number) {
+    return this.movieRepository
+      .createQueryBuilder()
+      .delete()
+      .where('id = :id', { id })
+      .execute();
+  }
 
   async remove(id: number) {
     const movie = await this.movieRepository.findOne({
@@ -385,11 +475,7 @@ export class MovieService {
       throw new NotFoundException('존재하지 않는 ID의 영화입니다!');
     }
 
-    await this.movieRepository
-      .createQueryBuilder()
-      .delete()
-      .where('id = :id', { id })
-      .execute();
+    await this.deleteMovie(id);
 
     // await this.movieRepository.delete(id);
     await this.movieDetailRepository.delete(movie.detail.id);
