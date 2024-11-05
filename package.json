@@ -13,11 +13,21 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "NODE_ENV=test jest",
     "test:watch": "jest --watch",
+    "test:integration": "jest --testRegex='.*\\integration.spec\\.ts$'",
     "test:cov": "jest --coverage",
+    "test:cov:watch": "jest --watchAll --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "NODE_ENV=test jest --config ./jest-e2e.json",
+    "test:user": "jest --testPathPattern=src/user --coverage --collectCoverageFrom=src/user/**",
+    "test:user:watch": "jest --watch --testPathPattern=src/user --coverage --collectCoverageFrom=src/user/**",
+    "test:auth": "jest --testPathPattern=src/auth --coverage --collectCoverageFrom=src/auth/**",
+    "test:auth:watch": "jest --watch --testPathPattern=src/auth --coverage --collectCoverageFrom=src/auth/**",
+    "test:director": "jest --testPathPattern=src/director --coverage --collectCoverageFrom=src/director/**",
+    "test:director:watch": "jest --watch --testPathPattern=src/director --coverage --collectCoverageFrom=src/director/**",
+    "test:genre": "jest --testPathPattern=src/genre --coverage --collectCoverageFrom=src/genre/**",
+    "test:genre:watch": "jest --watch --testPathPattern=src/genre --coverage --collectCoverageFrom=src/genre/**"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^2.3.0",
@@ -81,7 +91,9 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "roots": [
+      "src"
+    ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -89,7 +101,22 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "coveragePathIgnorePatterns": [
+      "module.ts",
+      "dto.ts",
+      "entity.ts",
+      "guard.ts",
+      "middleware.ts",
+      "strategy.ts",
+      "decorator.ts",
+      "pipe.ts",
+      "common/*",
+      "main.ts"
+    ],
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "src/(.*)": "<rootDir>/src/$1"
+    }
   }
 }

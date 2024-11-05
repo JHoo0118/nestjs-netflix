@@ -8,7 +8,7 @@ import { Director } from 'src/director/entity/director.entity';
 import { Genre } from 'src/genre/entity/genre.entity';
 import { CommonModule } from 'src/common/common.module';
 import { MovieUserLike } from './entity/movie-user-like.entity';
-import { User } from 'src/user/entity/user.entity';
+import { User } from 'src/user/entities/user.entity';
 
 // import { MulterModule } from '@nestjs/platform-express';
 // import { diskStorage } from 'multer';
