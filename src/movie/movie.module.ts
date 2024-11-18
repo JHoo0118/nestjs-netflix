@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { MovieController } from './movie.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,9 +14,6 @@ import { User } from 'src/user/entities/user.entity';
 // import { diskStorage } from 'multer';
 // import { join } from 'path';
 // import { v4 } from 'uuid';
-interface MovieModuleOptions {
-  uploadDestination: string;
-}
 
 @Module({
   imports: [
@@ -52,17 +49,17 @@ interface MovieModuleOptions {
   providers: [MovieService],
 })
 export class MovieModule {
-  static forRoot(options: MovieModuleOptions): DynamicModule {
-    return {
-      module: MovieModule,
-      providers: [
-        {
-          provide: 'MOVIE_MODULE_OPTIONS',
-          useValue: options,
-        },
-        MovieService,
-      ],
-      exports: [MovieService],
-    };
-  }
+  // static forRoot(options: MovieModuleOptions): DynamicModule {
+  //   return {
+  //     module: MovieModule,
+  //     providers: [
+  //       {
+  //         provide: 'MOVIE_MODULE_OPTIONS',
+  //         useValue: options,
+  //       },
+  //       MovieService,
+  //     ],
+  //     exports: [MovieService],
+  //   };
+  // }
 }

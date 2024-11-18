@@ -25,8 +25,8 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class MovieService {
   constructor(
-    @Inject('MOVIE_MODULE_OPTIONS')
-    private options: { uploadDestination: string },
+    // @Inject('MOVIE_MODULE_OPTIONS')
+    // private options: { uploadDestination: string },
     @InjectRepository(Movie)
     private readonly movieRepository: Repository<Movie>,
     @InjectRepository(MovieDetail)
@@ -43,9 +43,7 @@ export class MovieService {
     private readonly commonService: CommonService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly configService: ConfigService,
-  ) {
-    console.log(options);
-  }
+  ) {}
 
   async findRecent() {
     const cacheData = await this.cacheManager.get('MOVIE_RECENT');
