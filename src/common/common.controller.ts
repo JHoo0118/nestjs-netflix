@@ -8,12 +8,18 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommonService } from './common.service';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Controller('common')
 @ApiBearerAuth()
 @ApiTags('common')
 export class CommonController {
-  constructor(private readonly commonService: CommonService) {}
+  constructor(
+    private readonly commonService: CommonService,
+    @InjectQueue('thumbnail-generation')
+    private readonly thumbnailQueue: Queue,
+  ) {}
 
   @Post('video')
   @UseInterceptors(
@@ -33,7 +39,22 @@ export class CommonController {
       },
     }),
   )
-  createVideo(@UploadedFile() movie: Express.Multer.File) {
+  async createVideo(@UploadedFile() movie: Express.Multer.File) {
+    await this.thumbnailQueue.add(
+      'thumbnail',
+      {
+        videoId: movie.filename,
+        videoPath: movie.path,
+      },
+      {
+        priority: 1,
+        delay: 100,
+        attempts: 3,
+        lifo: true,
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
+    );
     return {
       fileName: movie.filename,
     };
