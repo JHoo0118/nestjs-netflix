@@ -14,6 +14,7 @@ import {
   BadRequestException,
   Version,
   VERSION_NEUTRAL,
+  Req,
 } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
@@ -103,7 +104,17 @@ export class MovieController {
       }),
     )
     id: number,
+    @Req() request: any,
   ) {
+    const session = request.session;
+
+    const movieCount = session.movieCount ?? {};
+
+    request.session.movieCount = {
+      ...movieCount,
+      [id]: movieCount[id] ? movieCount[id] + 1 : 1,
+    };
+
     return this.movieService.findOne(id);
   }
 
