@@ -36,6 +36,7 @@ import * as winston from 'winston';
 import { Chat } from './chat/entity/chat.entity';
 import { ChatRoom } from './chat/entity/chat-room.entity';
 import { WorkerModule } from './worker/worker.module';
+import { envVariableKeys } from './common/const/env.const';
 
 @Module({
   imports: [
@@ -47,20 +48,26 @@ import { WorkerModule } from './worker/worker.module';
         DB_TYPE: Joi.string().valid('postgres').required(),
         DB_HOST: Joi.string().required(),
         DB_PORT: Joi.number().required(),
+        DB_URL: Joi.string().required(),
         DB_USERNAME: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
         DB_DATABASE: Joi.string().required(),
         HASH_ROUNDS: Joi.number().required(),
+        REDIS_HOST: Joi.string().required(),
+        REDIS_PORT: Joi.number().required(),
+        REDIS_USERNAME: Joi.string().required(),
+        REDIS_PASSWORD: Joi.string().required(),
       }),
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
-        type: configService.get<string>('DB_TYPE') as 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_DATABASE'),
+        url: configService.get<string>(envVariableKeys.dbUrl),
+        type: configService.get<string>(envVariableKeys.dbType) as 'postgres',
+        host: configService.get<string>(envVariableKeys.dbHost),
+        port: configService.get<number>(envVariableKeys.dbPort),
+        username: configService.get<string>(envVariableKeys.dbUsername),
+        password: configService.get<string>(envVariableKeys.dbPassword),
+        database: configService.get<string>(envVariableKeys.dbDatabase),
         entities: [
           Movie,
           MovieDetail,

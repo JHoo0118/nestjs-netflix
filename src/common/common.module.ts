@@ -11,6 +11,8 @@ import { TasksService } from './tasks.service';
 import { DefaultLogger } from './logger/default.logger';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigService } from '@nestjs/config';
+import { envVariableKeys } from './const/env.const';
+import { PrismaService } from './prisma.service';
 
 @Module({
   imports: [
@@ -37,10 +39,10 @@ import { ConfigService } from '@nestjs/config';
     BullModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         connection: {
-          host: configService.get<string>('REDIS_HOST'),
-          port: configService.get<number>('REDIS_PORT'),
-          username: configService.get<string>('REDIS_USERNAME'),
-          password: configService.get<string>('REDIS_PASSWORD'),
+          host: configService.get<string>(envVariableKeys.redisHost),
+          port: configService.get<number>(envVariableKeys.redisPort),
+          username: configService.get<string>(envVariableKeys.redisUsername),
+          password: configService.get<string>(envVariableKeys.redisPassword),
         },
       }),
       inject: [ConfigService],
@@ -50,7 +52,7 @@ import { ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [CommonController],
-  providers: [CommonService, TasksService, DefaultLogger],
-  exports: [CommonService, DefaultLogger],
+  providers: [CommonService, TasksService, DefaultLogger, PrismaService],
+  exports: [CommonService, DefaultLogger, PrismaService],
 })
 export class CommonModule {}
