@@ -16,6 +16,7 @@ export class CursorPaginationDto {
     example: 'eyJ2YWx1ZXMiOnsiaWQiOjF9LCJvcmRlciI6WyJpZF9ERVNDIl19',
   })
   // id_52,likeCount_20
+  // 52
   cursor?: string;
 
   @IsArray()
@@ -38,7 +39,7 @@ export class CursorPaginationDto {
     description: '가져올 데이터 갯수',
     example: 5,
   })
-  take: number = 5;
+  take: number = 2;
 
   @IsBoolean()
   @IsOptional()
